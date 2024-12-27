@@ -1,0 +1,43 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+void createFile(const char *filename) {
+    FILE *file = fopen(filename, "w");
+    if (file == NULL) {
+        perror("Error creating file");
+        return;
+    }
+    fprintf(file, "This is a sample file.\n");
+    fclose(file);
+}
+
+void readFile(const char *filename) {
+    char buffer[255];
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error reading file");
+        return;
+    }
+    while (fgets(buffer, sizeof(buffer), file)) {
+        printf("%s", buffer);
+    }
+    fclose(file);
+}
+
+void deleteFile(const char *filename) {
+    if (remove(filename) == 0) {
+        printf("File deleted successfully.\n");
+    } else {
+        perror("Error deleting file");
+    }
+}
+
+int main() {
+    const char *filename = "sample.txt";
+
+    createFile(filename);
+    readFile(filename);
+    deleteFile(filename);
+
+    return 0;
+}
