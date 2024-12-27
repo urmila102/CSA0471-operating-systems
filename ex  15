@@ -1,0 +1,51 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <dirent.h>
+#include <sys/stat.h>
+
+void createDirectory(const char *path) {
+    struct stat st = {0};
+    if (stat(path, &st) == -1) {
+        mkdir(path, 0700);
+    }
+}
+
+void organizeFiles(const char *sourceDir, const char *destDir) {
+    struct dirent *entry;
+    DIR *dp = opendir(sourceDir);
+    
+    if (dp == NULL) {
+        perror("opendir");
+        return;
+    }
+
+    while ((entry = readdir(dp))) {
+        if (entry->d_type == DT_REG) {
+            char *ext = strrchr(entry->d_name, '.');
+            if (ext) {
+                char subDir[256];
+                snprintf(subDir, sizeof(subDir), "%s/%s", destDir, ext + 1);
+                createDirectory(subDir);
+                char sourceFile[256];
+                char destFile[256];
+                snprintf(sourceFile, sizeof(sourceFile), "%s/%s", sourceDir, entry->d_name);
+                snprintf(destFile, sizeof(destFile), "%s/%s/%s", destDir, ext + 1, entry->d_name);
+                rename(sourceFile, destFile);
+            }
+        }
+    }
+    closedir(dp);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <source_directory> <destination_directory>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    createDirectory(argv[2]);
+    organizeFiles(argv[1], argv[2]);
+
+    return EXIT_SUCCESS;
+}
