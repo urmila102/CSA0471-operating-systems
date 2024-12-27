@@ -1,0 +1,52 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct Employee {
+    int id;
+    char name[50];
+    float salary;
+};
+
+void writeEmployee(FILE *file, struct Employee emp, int position) {
+    fseek(file, position * sizeof(struct Employee), SEEK_SET);
+    fwrite(&emp, sizeof(struct Employee), 1, file);
+}
+
+void readEmployee(FILE *file, struct Employee *emp, int position) {
+    fseek(file, position * sizeof(struct Employee), SEEK_SET);
+    fread(emp, sizeof(struct Employee), 1, file);
+}
+
+int main() {
+    FILE *file;
+    struct Employee emp;
+
+    file = fopen("employees.dat", "wb+");
+    if (file == NULL) {
+        perror("Unable to open file!");
+        return 1;
+    }
+
+    // Writing employee details
+    emp.id = 1;
+    strcpy(emp.name, "John Doe");
+    emp.salary = 50000.00;
+    writeEmployee(file, emp, 0);
+
+    emp.id = 2;
+    strcpy(emp.name, "Jane Smith");
+    emp.salary = 60000.00;
+    writeEmployee(file, emp, 1);
+
+    // Reading employee details
+    struct Employee readEmp;
+    readEmployee(file, &readEmp, 0);
+    printf("Employee ID: %d, Name: %s, Salary: %.2f\n", readEmp.id, readEmp.name, readEmp.salary);
+
+    readEmployee(file, &readEmp, 1);
+    printf("Employee ID: %d, Name: %s, Salary: %.2f\n", readEmp.id, readEmp.name, readEmp.salary);
+
+    fclose(file);
+    return 0;
+}
