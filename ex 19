@@ -1,0 +1,27 @@
+#include <stdio.h>
+#include <pthread.h>
+
+pthread_mutex_t lock; // Mutex lock
+int shared_resource = 0; // Shared resource
+
+void *thread_function(void *arg) {
+    pthread_mutex_lock(&lock); // Lock before critical section
+    shared_resource++;
+    printf("Thread %ld updated resource to %d\n", (long)arg, shared_resource);
+    pthread_mutex_unlock(&lock); // Unlock after critical section
+    return NULL;
+}
+
+int main() {
+    pthread_t threads[5];
+    pthread_mutex_init(&lock, NULL); // Initialize mutex
+
+    for (long i = 0; i < 5; i++) 
+        pthread_create(&threads[i], NULL, thread_function, (void *)i);
+
+    for (int i = 0; i < 5; i++) 
+        pthread_join(threads[i], NULL);
+
+    pthread_mutex_destroy(&lock); // Destroy mutex
+    return 0;
+}
