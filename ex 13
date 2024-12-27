@@ -1,0 +1,92 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX 100
+
+typedef struct {
+    int size;
+    int isFree;
+} Block;
+
+Block memory[MAX];
+
+void initializeMemory() {
+    for (int i = 0; i < MAX; i++) {
+        memory[i].size = 0;
+        memory[i].isFree = 1;
+    }
+}
+
+void firstFit(int size) {
+    for (int i = 0; i < MAX; i++) {
+        if (memory[i].isFree && memory[i].size >= size) {
+            memory[i].isFree = 0;
+            printf("Allocated %d bytes at block %d using First Fit\n", size, i);
+            return;
+        }
+    }
+    printf("No suitable block found for %d bytes using First Fit\n", size);
+}
+
+void bestFit(int size) {
+    int bestIndex = -1;
+    for (int i = 0; i < MAX; i++) {
+        if (memory[i].isFree && memory[i].size >= size) {
+            if (bestIndex == -1 || memory[i].size < memory[bestIndex].size) {
+                bestIndex = i;
+            }
+        }
+    }
+    if (bestIndex != -1) {
+        memory[bestIndex].isFree = 0;
+        printf("Allocated %d bytes at block %d using Best Fit\n", size, bestIndex);
+    } else {
+        printf("No suitable block found for %d bytes using Best Fit\n", size);
+    }
+}
+
+void worstFit(int size) {
+    int worstIndex = -1;
+    for (int i = 0; i < MAX; i++) {
+        if (memory[i].isFree && memory[i].size >= size) {
+            if (worstIndex == -1 || memory[i].size > memory[worstIndex].size) {
+                worstIndex = i;
+            }
+        }
+    }
+    if (worstIndex != -1) {
+        memory[worstIndex].isFree = 0;
+        printf("Allocated %d bytes at block %d using Worst Fit\n", size, worstIndex);
+    } else {
+        printf("No suitable block found for %d bytes using Worst Fit\n", size);
+    }
+}
+
+void displayMemory() {
+    for (int i = 0; i < MAX; i++) {
+        if (memory[i].isFree) {
+            printf("Block %d: Free\n", i);
+        } else {
+            printf("Block %d: Allocated\n", i);
+        }
+    }
+}
+
+int main() {
+    initializeMemory();
+    
+    // Simulating memory blocks
+    for (int i = 0; i < MAX; i++) {
+        memory[i].size = rand() % 100 + 1; // Random size between 1 and 100
+    }
+
+    displayMemory();
+    
+    firstFit(20);
+    bestFit(30);
+    worstFit(40);
+    
+    displayMemory();
+    
+    return 0;
+}
