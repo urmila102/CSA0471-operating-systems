@@ -1,0 +1,92 @@
+#include <stdio.h>
+
+#define MAX_PROCESSES 10
+
+typedef struct {
+    int pid;        // Process ID
+    int arrivalTime; // Arrival time
+    int burstTime;   // Burst time
+    int remainingTime; // Remaining burst time
+    int completionTime; // Completion time
+    int turnaroundTime; // Turnaround time
+    int waitingTime;    // Waiting time
+} Process;
+
+int main() {
+    int n, timeQuantum;
+    Process processes[MAX_PROCESSES];
+    int currentTime = 0, completed = 0, queue[MAX_PROCESSES], front = 0, rear = 0;
+
+    // Input number of processes and time quantum
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+    printf("Enter the time quantum: ");
+    scanf("%d", &timeQuantum);
+
+    // Input process details
+    for (int i = 0; i < n; i++) {
+        processes[i].pid = i + 1;
+        printf("Enter arrival time and burst time for Process %d: ", i + 1);
+        scanf("%d %d", &processes[i].arrivalTime, &processes[i].burstTime);
+        processes[i].remainingTime = processes[i].burstTime;
+    }
+
+    // Add processes to queue as they arrive
+    queue[rear++] = 0; // Enqueue the first process
+
+    while (completed < n) {
+        int selectedProcess = queue[front++]; // Dequeue
+        if (front == MAX_PROCESSES) front = 0;
+
+        // Execute the process for the time quantum or until completion
+        int executionTime = (processes[selectedProcess].remainingTime > timeQuantum) ? timeQuantum : processes[selectedProcess].remainingTime;
+        currentTime += executionTime;
+        processes[selectedProcess].remainingTime -= executionTime;
+
+        // Check for newly arrived processes during this time
+        for (int i = 0; i < n; i++) {
+            if (i != selectedProcess && processes[i].arrivalTime <= currentTime &&
+                processes[i].remainingTime > 0) {
+                int found = 0;
+                for (int j = front; j != rear; j = (j + 1) % MAX_PROCESSES) {
+                    if (queue[j] == i) {
+                        found = 1;
+                        break;
+                    }
+                }
+                if (!found) {
+                    queue[rear++] = i; // Enqueue
+                    if (rear == MAX_PROCESSES) rear = 0;
+                }
+            }
+        }
+
+        // Re-add the process to the queue if it's not completed
+        if (processes[selectedProcess].remainingTime > 0) {
+            queue[rear++] = selectedProcess; // Re-enqueue
+            if (rear == MAX_PROCESSES) rear = 0;
+        } else {
+            // Process is completed
+            completed++;
+            processes[selectedProcess].completionTime = currentTime;
+            processes[selectedProcess].turnaroundTime = 
+                processes[selectedProcess].completionTime - processes[selectedProcess].arrivalTime;
+            processes[selectedProcess].waitingTime = 
+                processes[selectedProcess].turnaroundTime - processes[selectedProcess].burstTime;
+        }
+    }
+
+    // Display results
+    printf("\nPID\tAT\tBT\tCT\tTAT\tWT\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t%d\t%d\t%d\t%d\t%d\n",
+               processes[i].pid,
+               processes[i].arrivalTime,
+               processes[i].burstTime,
+               processes[i].completionTime,
+               processes[i].turnaroundTime,
+               processes[i].waitingTime);
+    }
+
+    return 0;
+}
