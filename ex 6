@@ -1,0 +1,90 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define MAX_PROCESSES 10
+
+typedef struct {
+    int pid;        // Process ID
+    int arrivalTime;
+    int burstTime;
+    int remainingTime;
+    int priority;
+    int completionTime;
+    int turnaroundTime;
+    int waitingTime;
+    bool isComplete;
+} Process;
+
+// Function to find the process with the highest priority at a given time
+int findHighestPriorityProcess(Process processes[], int n, int currentTime) {
+    int highestPriority = 9999;
+    int selectedProcess = -1;
+
+    for (int i = 0; i < n; i++) {
+        if (!processes[i].isComplete && 
+            processes[i].arrivalTime <= currentTime &&
+            processes[i].priority < highestPriority) {
+            highestPriority = processes[i].priority;
+            selectedProcess = i;
+        }
+    }
+    return selectedProcess;
+}
+
+int main() {
+    int n;
+    Process processes[MAX_PROCESSES];
+
+    // Input number of processes
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    // Input process details
+    for (int i = 0; i < n; i++) {
+        processes[i].pid = i + 1;
+        printf("Enter arrival time, burst time, and priority for Process %d: ", i + 1);
+        scanf("%d %d %d", &processes[i].arrivalTime, &processes[i].burstTime, &processes[i].priority);
+        processes[i].remainingTime = processes[i].burstTime;
+        processes[i].isComplete = false;
+    }
+
+    int currentTime = 0, completed = 0;
+    while (completed < n) {
+        int selectedProcess = findHighestPriorityProcess(processes, n, currentTime);
+
+        if (selectedProcess == -1) {
+            currentTime++;
+            continue;
+        }
+
+        // Process execution (1 unit of time)
+        processes[selectedProcess].remainingTime--;
+
+        if (processes[selectedProcess].remainingTime == 0) {
+            processes[selectedProcess].isComplete = true;
+            processes[selectedProcess].completionTime = currentTime + 1;
+            processes[selectedProcess].turnaroundTime = 
+                processes[selectedProcess].completionTime - processes[selectedProcess].arrivalTime;
+            processes[selectedProcess].waitingTime = 
+                processes[selectedProcess].turnaroundTime - processes[selectedProcess].burstTime;
+            completed++;
+        }
+
+        currentTime++;
+    }
+
+    // Display results
+    printf("\nPID\tAT\tBT\tP\tCT\tTAT\tWT\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\n", 
+               processes[i].pid, 
+               processes[i].arrivalTime, 
+               processes[i].burstTime, 
+               processes[i].priority, 
+               processes[i].completionTime, 
+               processes[i].turnaroundTime, 
+               processes[i].waitingTime);
+    }
+
+    return 0;
+}
